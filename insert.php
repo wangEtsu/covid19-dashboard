@@ -5,6 +5,22 @@ $connection = new mysqli("localhost", "root", "", "covid_cases");
     }
     // echo("Success");
 
+    // Create table if it doesn't exist
+    $checkTable = "SELECT ID FROM victoria";
+    $tableExist = mysqli_query($connection, $checkTable);
+
+    if(empty($tableExist)) {
+        $query = "CREATE TABLE victoria (
+                    ID int(11) AUTO_INCREMENT,
+                    lga varchar(255) NOT NULL,
+                    population int(10),
+                    cases int(10),
+                    PRIMARY KEY  (ID)
+                    )";
+        $result = mysqli_query($connection, $query);
+    }
+
+    // Clean old data
     $del = $connection->query("DELETE FROM victoria");
 
     // Read CSV Data 
@@ -20,13 +36,18 @@ $connection = new mysqli("localhost", "root", "", "covid_cases");
         echo "</br>";
         
         // Insert into database
-        $sql = $connection->query("INSERT INTO victoria (lga,population,cases) VALUES('$row_lga', '$row_population', '$row_cases')");
+        try{
+            $sql = $connection->query("INSERT INTO victoria (lga,population,cases) VALUES('$row_lga', '$row_population', '$row_cases')");
 
-        if($sql){
-            echo "Success!";
+            if($sql){
+                echo "Success!";
+            }
+            else{
+                echo "Fail";
+            }
+        } catch (Exception $e) {
+            echo $e->getMessage();
         }
-        else{
-            echo "Fail";
-        }
+        
     }
 ?>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Mega</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/5b075a4271.js" crossorigin="anonymous"></script>
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <style>
+        #overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6)
+        }
+        #chartdiv {
+            width: 100%;
+            height: 500px;
+        }
+        #heading {
+            font-size: 50px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            color: cornsilk;
+            background-color: darkslateblue;
+            line-height: 15rem;
+        }
+        th {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1 class="text-center" id="heading">Covid-19 Cases in Victoria by LGA</h1>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div id="chartdiv"></div>
+                </div>
+                <!-- <div class="col-lg-6">
+                    <h3>Covid Cases in Victoria by LGA</h3>
+                </div>
+                <div class="col-lg-6">
+                    <button class="btn btn-info float-right" @click="showAddModal=true;">
+                        <i class="fas fa-user">Add New Record</i>
+                    </button>
+                </div> -->
+            </div>
+            <hr class="bg-info">
+            <div class="alert alert-danger" v-if="errorMsg">
+                {{ errorMsg }}
+            </div>
+            <div class="alert alert-success" v-if="successMsg">
+                {{ successMsg }}
+            </div>
+
+            <!-- Displaying cases -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <table class="text-center table table-bordered table-striped">
+                        <thead>
+                            <tr class="text-center bg-info text-light">
+                                <!-- <th>ID</th> -->
+                                <th>Local Government Area</th>
+                                <th>Population</th>
+                                <th>Cases</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-center" v-for="record in records">
+                                <!-- <td>{{ record.id }}</td> -->
+                                <td>{{ record.lga }}</td>
+                                <td>{{ record.population }}</td>
+                                <td>{{ record.cases }}</td>
+                                <td><a href="#" class="text-success"><i class="fas fa-edit"
+                                            @click="showUpdateModal=true; selectRecord(record);"></i></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Data Modal -->
+        <!-- <div id="overlay" v-if="showAddModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h5 class="modal-title">Add</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <button type="button" class="close" @click="showAddModal=false">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="lga" class="form-control form-control-lg" placeholder="Lga"
+                                    v-model="newRecord.lga">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="population" class="form-control form-control-lg"
+                                    placeholder="Population" v-model="newRecord.population">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="cases" class="form-control form-control-lg" placeholder="Cases"
+                                    v-model="newRecord.cases">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-info btn-block btn-lg"
+                                    @click="showAddModal=false; addRecord();">Add Record</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div> -->
+
+        <!-- Update Data Modal -->
+        <div id="overlay" v-if="showUpdateModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h5 class="modal-title">Update Record</h5>
+                            </div>
+                            <div class="col-lg-6">
+                                <button type="button" class="close" @click="showUpdateModal=false">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="lga" class="form-control form-control-lg" placeholder="Lga"
+                                    v-model="currentRecord.lga">
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="population" class="form-control form-control-lg"
+                                    placeholder="Population" v-model="currentRecord.population">
+                            </div>
+                            <!-- <div class="form-group">
+                                <input type="text" name="cases" class="form-control form-control-lg" placeholder="Cases"
+                                    v-model="currentRecord.cases">
+                            </div> -->
+                            <div class="form-group">
+                                <button class="btn btn-info btn-block btn-lg"
+                                    @click="showUpdateModal=false; updateRecord();">Update Record</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js"></script>
+    <!-- production version, optimized for size and speed -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+
+    <!-- <script>
+        var data = [];
+        axios.get("http://localhost/covid-vic/process.php?action=read").then(function (response) {
+
+            if (response.data.error) {
+                console.log(response.data.message);
+            }
+            else {
+                data = response.data.records;
+                
+            }
+        });
+        console.log(data);
+
+
+    </script> -->
+
+
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                errorMsg: "",
+                successMsg: "",
+                showAddModal: false,
+                showUpdateModal: false,
+                records: [],
+                newRecord: { lga: "", population: "", cases: "" },
+                currentRecord: {}
+            },
+            mounted: function () {
+                console.log("Test");
+                this.getAllRecords();
+                this.displayPieChart();
+            },
+            methods: {
+                getAllRecords() {
+                    axios.get("http://localhost/covid-vic/process.php?action=read").then(function (response) {
+
+                        if (response.data.error) {
+                            app.errorMsg = response.data.message;
+                        }
+                        else {
+                            app.records = response.data.records;
+                            // console.log(app.records);
+                        }
+                    })
+                },
+                displayPieChart() {
+                    axios.get("http://localhost/covid-vic/process.php?action=read").then(function (response) {
+
+                        if (response.data.error) {
+                            app.errorMsg = response.data.message;
+                        }
+                        else {
+                            var data = response.data.records;
+                            // console.log(data);
+
+                            // Remove lga with zero cases
+                            // for(var i = 0; i < data.length; i++){
+                            //     if(data[i].cases == 0){
+                            //         console.log(data[i]);
+                            //         data.splice(i, 1);
+                            //     };
+                            // }
+
+                            am4core.ready(function () {
+
+                                // Themes begin
+                                am4core.useTheme(am4themes_animated);
+                                // Themes end
+
+                                // Create chart instance
+                                var chart = am4core.create("chartdiv", am4charts.PieChart);
+
+                                // Add data
+                                chart.data = data;
+
+                                // Add and configure Series
+                                var pieSeries = chart.series.push(new am4charts.PieSeries());
+                                pieSeries.dataFields.value = "cases";
+                                pieSeries.dataFields.category = "lga";
+                                pieSeries.slices.template.stroke = am4core.color("#fff");
+                                pieSeries.slices.template.strokeOpacity = 1;
+                                pieSeries.labels.template.disabled = true;
+                                pieSeries.ticks.template.disabled = true;
+                                // This creates initial animation
+                                pieSeries.hiddenState.properties.opacity = 1;
+                                pieSeries.hiddenState.properties.endAngle = -90;
+                                pieSeries.hiddenState.properties.startAngle = -90;
+
+                                chart.hiddenState.properties.radius = am4core.percent(0);
+                                
+                                // Add a title
+                                // var title = chart.titles.create();
+                                // title.text = "Distribution of Covid-19 Cases by Local Government Area";
+                                // title.fontSize = 25;
+                                // title.marginTop = 10;
+
+                                // Add a legend
+                                chart.legend = new am4charts.Legend();
+                                chart.legend.position = "left";
+                                chart.legend.scrollable = true;
+
+                                chart.responsive.enabled = true;
+
+                            }); // end am4core.ready()
+
+                        }
+                    })
+                },
+                // addRecord() {
+                //     var formData = app.toFormData(app.newRecord);
+                //     axios.post("http://localhost/covid-vic/process.php?action=create", formData).then(function (response) {
+                //         app.newRecord = { lga: "", population: "", cases: "" };
+                //         if (response.data.error) {
+                //             app.errorMsg = response.data.message;
+                //         }
+                //         else {
+                //             // get all new record after new record inserted
+                //             app.getAllRecords();
+                //             app.displayPieChart();
+                //             console.log(app.records);
+                //         }
+                //     })
+                // },
+                updateRecord() {
+                    var formData = app.toFormData(app.currentRecord);
+                    axios.post("http://localhost/covid-vic/process.php?action=update", formData).then(function (response) {
+                        app.currentRecord = {};
+                        if (response.data.error) {
+                            app.errorMsg = response.data.message;
+                        }
+                        else {
+                            app.successMsg = response.data.message;
+                            // get all new record after new record inserted
+                            app.getAllRecords();
+                            app.displayPieChart();
+                            console.log(app.records);
+                        }
+                    })
+                },
+                // append data in object to formdata
+                toFormData(obj) {
+                    var fd = new FormData();
+                    for (var i in obj) {
+                        fd.append(i, obj[i]);
+                    }
+                    return fd;
+                },
+                selectRecord(record) {
+                    console.log(record);
+                    app.currentRecord = record;
+                }
+            }
+        });
+    </script>
+    <!-- <script type="text/javascript" src="main.js"></script> -->
+</body>
+
+</html>
